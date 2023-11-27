@@ -3,18 +3,15 @@ from flask import Flask,render_template,url_for,request , jsonify
 app = Flask(__name__)
 
 
-
-
-
-
 #!/usr/bin/env python
 # coding: utf-8
 
 
 class Point():
-    def __init__(self, x, y):
+    def __init__(self, x, y, wn):
         self.x = x
         self.y = y
+        self.wn = wn
 
 
 
@@ -87,7 +84,7 @@ import matplotlib.patches as patches
 class QTree():
     def __init__(self, k, n):
         self.threshold = k
-        self.points = [Point(random.uniform(0, 960), random.uniform(0, 500)) for x in range(n)]
+        self.points = [Point(random.uniform(0, 960), random.uniform(0, 500), random.uniform(0,1)) for _ in range(n)]
         self.root = Node(0, 0, 960, 500, self.points)
 
     def add_point(self, x, y):
@@ -150,13 +147,16 @@ def search():
 
         # Perform the search using the contains function
         
-        pts = contains(x0,y0,x1,y1,quadtree.get_points())
-        data = []
-        for point in pts:
-            data.append((point.x, point.y))
+        pts_search = contains(x0,y0,x1,y1,quadtree.get_points())
+
+        pts_search.sort(key=lambda point: point.wn)
+
+        data_search = []
+        for point in pts_search:
+            data_search.append((point.x, point.y))
         
         # You can return the result as JSON
-        return jsonify(data)
+        return jsonify(data_search)
 
 if __name__ == '__main__':
     app.run(debug=True)
