@@ -1,19 +1,18 @@
 from flask import Flask,render_template,url_for,request , jsonify
+import random
+import csv
+import os
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 
 app = Flask(__name__)
-
-
-#!/usr/bin/env python
-# coding: utf-8
-
 
 class Point():
     def __init__(self, x, y, wn):
         self.x = x
         self.y = y
         self.wn = wn
-
-
 
 class Node():
     def __init__(self, x0, y0, w, h, points):
@@ -82,9 +81,21 @@ import matplotlib.pyplot as plt # plotting libraries
 import matplotlib.patches as patches
 
 class QTree():
-    def __init__(self, k, n):
+    def __init__(self, k, n, data_source):
         self.threshold = k
-        self.points = [Point(random.uniform(0, 960), random.uniform(0, 500), random.uniform(0,1)) for _ in range(n)]
+        if data_source == "random":
+            self.points = [Point(random.uniform(0, 960), random.uniform(0, 500), random.uniform(0, 1)) for _ in range(n)]
+        elif data_source == "random_normal":
+            mean, std_dev = 480, 100
+            self.points = [Point(np.random.normal(mean, std_dev), np.random.normal(mean, std_dev), random.uniform(0, 1)) for _ in range(n)]
+        elif data_source == "csv":
+            # Assuming 'data.csv' has columns 'x' and 'y'
+            self.points = self.load_csv_data('data.csv')
+            # Add wn randomly (to be replaced with actual values later)
+            for point in self.points:
+                point.wn = random.uniform(0, 1)
+        else:
+            raise ValueError("Invalid data source")
         self.root = Node(0, 0, 960, 500, self.points)
 
     def add_point(self, x, y):
@@ -113,28 +124,25 @@ class QTree():
         plt.show()
         return
 
+quadtree = None
 
-# Create the data array
-#data = list(zip(x_coordinates, y_coordinates))
-
-quadtree = QTree(k=2, n=10000)
-print(quadtree)
-quadtree.subdivide()
-pts = contains(0,0,960,500,quadtree.get_points())
-data = []
-for point in pts:
-    data.append((point.x, point.y))
-data
-#quadtree.graph()
 
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    return render_template('index.html', data=data)
+    data_sources = ["random", "random_normal", "csv"]
+    selected_data_source = "random"  # Default to random data
+    if request.method == 'POST':
+        selected_data_source = request.form.get('data_source', 'random')
 
-# @app.route('/')
-# def index():
-#     return render_template('index.html')
+    global quadtree
+    quadtree = QTree(k=2, n=10000, data_source=selected_data_source)
+    quadtree.subdivide()
+    pts = contains(0, 0, 960, 500, quadtree.get_points())
+    data = [(point.x, point.y) for point in pts]
+
+    return render_template('index.html', data=data, data_sources=data_sources, selected_data_source=selected_data_source)
+
 @app.route('/search', methods=['POST'])
 def search():
     if request.method == 'POST':
@@ -151,9 +159,11 @@ def search():
 
         pts_search.sort(key=lambda point: point.wn)
 
-        data_search = []
-        for point in pts_search:
-            data_search.append((point.x, point.y))
+        # data_search = []
+        # for point in pts_search:
+        #     data_search.append((point.x, point.y))
+
+        data_search = [(point.x, point.y) for point in pts_search]
         
         # You can return the result as JSON
         return jsonify(data_search)
