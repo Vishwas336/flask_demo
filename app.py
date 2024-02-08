@@ -5,6 +5,9 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+import sys
+
+sys.setrecursionlimit(2000)
 
 app = Flask(__name__)
 
@@ -37,8 +40,8 @@ def recursive_subdivide(node, k):
     if len(node.points)<=k:
         return
    
-    w_ = float(node.width/2)
-    h_ = float(node.height/2)
+    w_ = float(node.width//2.0)
+    h_ = float(node.height//2.0)
 
     p = contains(node.x0, node.y0, w_, h_, node.points)
     x1 = Node(node.x0, node.y0, w_, h_, p)
@@ -90,7 +93,7 @@ class QTree():
             self.points = [Point(np.random.normal(mean, std_dev), np.random.normal(mean, std_dev), random.uniform(0, 1)) for _ in range(n)]
         elif data_source == "csv":
             # Assuming 'data.csv' has columns 'x' and 'y'
-            self.points = self.load_csv_data('data.csv')
+            self.points = self.load_csv_data('scaled_points_usa1.csv')
             # Add wn randomly (to be replaced with actual values later)
             for point in self.points:
                 point.wn = random.uniform(0, 1)
@@ -123,6 +126,19 @@ class QTree():
         plt.plot(x, y, 'ro') # plots the points as red dots
         plt.show()
         return
+    
+    def load_csv_data(self, filename):
+        points = []
+        with open(filename, 'r') as csv_file:
+            csv_reader = csv.DictReader(csv_file)
+            count = 0
+            for row in csv_reader:
+                # Assuming columns are 'x' and 'y'
+                count += 1
+                x = float(row['scaled_x'])
+                y = float(row['scaled_y'])
+                points.append(Point(x, y, 0))  # Add placeholder 'wn' value
+        return points
 
 quadtree = None
 

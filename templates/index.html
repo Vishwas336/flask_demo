@@ -56,8 +56,10 @@
           });
       });
     }
-          
-    function zoomed(transform) {
+    // add atributes to points    
+    function zoomed(transform) // create seperate func like redraw and call it inside zoomed. check out throttel
+
+    {
       console.log(transform)
       context.save();
       context.clearRect(0, 0, width, height);
@@ -108,8 +110,8 @@
       // samplePoints.sort((a, b) => a[2] - b[2]);
       // // limit the number of sample points to 1000
 
-        if(searchData.length>1000){
-        searchData.length = 1000;
+        if(searchData.length>5000){
+        searchData.length = 5000;
         }
       
       for (const [x, y] of searchData) {
