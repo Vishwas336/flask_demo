@@ -156,7 +156,7 @@ def index():
     quadtree.subdivide()
     pts = contains(0, 0, 960, 500, quadtree.get_points())
     data = [(point.x, point.y) for point in pts]
-
+   
     return render_template('index.html', data=data, data_sources=data_sources, selected_data_source=selected_data_source)
 
 @app.route('/search', methods=['POST'])
@@ -172,14 +172,19 @@ def search():
         # Perform the search using the contains function
         
         pts_search = contains(x0,y0,x1,y1,quadtree.get_points())
+        #pts_search = random.sample(pts_search,5000)
 
         pts_search.sort(key=lambda point: point.wn)
+
+        if len(pts_search) > 5000:
+            pts_search = pts_search[:5000]
 
         # data_search = []
         # for point in pts_search:
         #     data_search.append((point.x, point.y))
-
+    
         data_search = [(point.x, point.y) for point in pts_search]
+        data_search+=[(x0,y0),(x1,y0),(x1,y1),(x0,y1)]
         
         # You can return the result as JSON
         return jsonify(data_search)

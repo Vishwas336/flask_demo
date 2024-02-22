@@ -7,14 +7,18 @@
 </head>
 <body>
   <form action="/" method="post">
+    <input type="hidden" name="x0" id="x0" value="0">
+    <input type="hidden" name="x1" id="x1" value="960">
+    <input type="hidden" name="y0" id="y0" value="0">
+    <input type="hidden" name="y1" id="y1" value="500">
     <label for="data_source">Select Data Source:</label>
     <select id="data_source" name="data_source">
-      {% for source in data_sources %}
-        <option value="{{ source }}" {% if source == selected_data_source %}selected{% endif %}>{{ source }}</option>
-      {% endfor %}
+        {% for source in data_sources %}
+            <option value="{{ source }}" {% if source == selected_data_source %}selected{% endif %}>{{ source }}</option>
+        {% endfor %}
     </select>
     <input type="submit" value="Load Data">
-  </form>
+</form>
 
   <script type="text/javascript">
 
@@ -31,9 +35,19 @@
     const r = 1.5; // Radius of circle
 
     d3.select(context.canvas)
-      .call(d3.zoom()
-        .scaleExtent([1, 20])
-        .on("zoom", ({ transform }) => zoomed(transform)));
+        .call(d3.zoom()
+            .scaleExtent([1, 20])
+            .on("zoom", ({ transform }) => {
+                zoomed(transform);
+                
+                // Update hidden input values with bounding box coordinates
+                let [x0, y0] = transform.apply([0, 0]);
+                let [x1, y1] = transform.apply([width, height]);
+                document.getElementById('x0').value = x0;
+                document.getElementById('y0').value = y0;
+                document.getElementById('x1').value = x1;
+                document.getElementById('y1').value = y1;
+            }));
 
 
     let searchData=[]; // Variable to store the data
@@ -95,7 +109,7 @@
         .then((data) => {
             // Handle the data, e.g., store it in a variable
             //sending data to a global variable
-            console.log(data);
+            //console.log(data);
             // for (const [x,y] of data){
             //   searchData.push([x,y])
             // }
@@ -110,15 +124,20 @@
       // samplePoints.sort((a, b) => a[2] - b[2]);
       // // limit the number of sample points to 1000
 
-        if(searchData.length>5000){
-        searchData.length = 5000;
-        }
+        // if(searchData.length>5000){
+        // searchData.length = 5000;
+        // }
       
       for (const [x, y] of searchData) {
         context.moveTo(x + r, y);
         context.arc(x, y, r, 0, 2 * Math.PI);
       }
 
+      let finalPoints = searchData.slice(-4);
+      let xx0 = finalPoints[0][0];
+      let yy0 = finalPoints[0][1];
+      let xx1 = finalPoints[1][0];
+      let yy1 = finalPoints[1][1];
 
       context.fill();
       context.save();
@@ -133,7 +152,22 @@
       context.lineWidth = 3;
       context.stroke();
       context.restore();
+      /////////////////
+      // context.save();
+      // context.beginPath();
+      // context.moveTo(xx0, yy0);
+      // context.lineTo(xx0, yy1);
+      // context.lineTo(xx1, yy1);
+      // context.lineTo(xx1, yy0);
+      // context.closePath();
+      // // red stroke width 3
+      // context.strokeStyle = "blue";
+      // context.lineWidth = 3;
+      // context.stroke();
+      // context.restore();
+
       context.restore();
+
     }
 
     window.onload = function() { (d3.zoomIdentity); };
